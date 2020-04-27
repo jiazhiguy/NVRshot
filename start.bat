@@ -1,3 +1,3 @@
-start pubsub_server.exe
-start publish_web.exe
-start subscrible.exe
+start ./bin/pubsub_server.exe
+start ./bin/publish_web.exe
+start ./bin/subscrible.exe
