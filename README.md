@@ -1,5 +1,6 @@
-"# NVRshot" 
-使用ffmpeg通过刻录机RTSP地址进行定制截取图片
+"# NVRshot"
+ 
+使用ffmpeg根据刻录机的RTSP地址，定时截取摄像头图片
 
 1.安装ffmpeg 并设置为系统变量
 
