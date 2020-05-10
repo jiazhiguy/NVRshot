@@ -15,7 +15,7 @@ import(
 func main() {
 	urls := []string{}
     category := "3";
-    host := "http://local:9090/message";
+    host := "http://localhost:9090/message";
     var hikaNVR,channels,tip,clientId,topic string
     fmt.Print("设备ID:")
     fmt.Scanln(&clientId)
@@ -24,45 +24,55 @@ func main() {
     fmt.Print("海康NVR地址：(示例 admin:a12345678@192.168.10.100:554)")
     fmt.Scanln(&hikaNVR)
     if hikaNVR == ""{
-    	fmt.Println("hikaNVR不能为空")
-    	return
+    	exit("hikaNVR不能为空")
+    	// <-time.After(2*time.Second)
+    	// return
     }
     targetNVR := strings.Split(hikaNVR,"@")
     if len(targetNVR) !=2{
-    	fmt.Println("hikaNVR参数错误")
-    	return
+    	exit("hikaNVR参数错误")
+    	// <-time.After(2*time.Second)
+    	// return
     }
     targetUrl := strings.Split(targetNVR[1],":")[0]
     pingOk,_:= ServerPing(targetUrl)
     if !pingOk{
-    	fmt.Println("NVR地址["+targetUrl+"]:不能ping通")
-    	return
+    	exit("NVR地址["+targetUrl+"]:不能ping通")
+    	// <-time.After(2*time.Second)
+    	// return
     }
     fmt.Print("起始截止通道：(示例 1-32   表示1到32通道)")
     fmt.Scanln(&channels)
     if channels == ""{
-    	fmt.Println("通道不能为空")
-    	return
+    	exit("通道不能为空")
+    	// <-time.After(2*time.Second)
+    	// return
     }
     chanArray := strings.Split(channels,",")
    	for _,channelGroup := range chanArray{
 		chanNumArray := strings.Split(channelGroup,"-") 
-		fmt.Println(chanNumArray)
+		// fmt.Println(chanNumArray)
 		numLen :=len(chanNumArray)
 		if  numLen>2 {
-			log.Fatal("起始截止通道参数错误")
+			exit("起始截止通道参数错误")
+			// fmt.Println("起始截止通道参数错误")
+			// <-time.After(2*time.Second)
+			// panic("exit")
 		}else{
+			var start ,end int
+			var err error
 			if numLen == 1{
-				url := fmt.Sprintf("rtsp://%s/Streaming/Channels/%s01?transportmode=unicast",hikaNVR,chanNumArray[0])
+		        if start,err = strconv.Atoi(chanNumArray[0]) ;err != nil {
+	                exit("起始截止通道参数必须为数字")
+	            }
+				url := fmt.Sprintf("rtsp://%s/Streaming/Channels/%s01?transportmode=unicast",hikaNVR,start)
 				urls = append(urls,url)
 			}else{
-				var start ,end int
-				var err error
 	          	if start,err = strconv.Atoi(chanNumArray[0]) ;err != nil {
-	                log.Fatal("起始截止通道参数必须为数字")
+	                exit("起始截止通道参数必须为数字")
 	            }
 	      		if end,err = strconv.Atoi(chanNumArray[1]) ;err != nil {
-	                log.Fatal("起始截止通道参数必须为数字")
+	                exit("起始截止通道参数必须为数字")
 	            } 
 	            i := start
 	            for i<=end {
@@ -76,7 +86,7 @@ func main() {
     fmt.Print("定时计划:(示例 0_0/10_*_*_*_?  表示每隔10分钟截图一次)")
     fmt.Scanln(&tip)
     if tip == ""{
-    	fmt.Println("定时计划不能为空")
+    	exit("定时计划不能为空")
     	return
     } 
     tip = strings.Replace(tip,"_"," ",-1)
@@ -102,7 +112,7 @@ func main() {
 	})
 
 	if err != nil{
-		fmt.Println("添加定时错误:",err)
+		exit("添加定时错误:"+err.Error())
 	}
 	select{}
 } 
@@ -146,4 +156,10 @@ func ServerPing(target string) (bool,error)  {
     }
     return false,nil
 
+}
+func exit(err string) {
+	fmt.Println(err)
+	fmt.Println("********程序2s后退出*********")
+	<-time.After(2*time.Second)
+	panic("exit")
 }
